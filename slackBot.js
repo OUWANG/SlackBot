@@ -21,26 +21,6 @@ app.post ('/messageReceive', function(req, res) {
   if (payload.actions[0].value === 'true'){
     res.send({
       text: 'Created! :white_check_mark:',
-      // attachments: [
-      //   {
-      //       "color": "#36a64f",
-      //       // "pretext": "AWESOME! SO I'll create a reminder for you.",
-      //       "title": "AWESOME! SO I'll create a reminder for you.",
-      //       "text": "Optional text that appears within the attachment",
-      //       "fields": [
-      //           {
-      //               "title": "Subject",
-      //               "value": "Richard",
-      //               "short": true
-      //           },
-      //           {
-      //               "title": "Day",
-      //               "value": "High",
-      //               "short": true
-      //           }
-      //       ]
-      //   }
-      // ]
     })
     pendingExist = false
   } else if (payload.actions[0].value === 'false'){
@@ -109,52 +89,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
       rtm.sendMessage(data.result.fulfillment.speech, message.channel);
     }
     else { //When I have everything what I need. ex. date & todo.
-      var jsonBtn = {
-        // "text": "Would you like to play a game?",
-        "attachments": [
-            {
-                // "title": "Is this reminder correct?",
-                "fallback": "You are unable to create a schedule",
-                "attachment_type": "default",
-                "fields": [
-                          {
-                              "title": "Subject",
-                              "value": data.result.parameters.subject,
-                              "short": true
-                          },
-                          {
-                              "title": "Date",
-                              "value": data.result.parameters.date,
-                              "short": true
-                          }
-                      ]
-              },
-              {
-                  // "title": "Is this reminder correct?",
-                  "fallback": "You are unable to create a schedule",
-                  "callback_id": "confirm_or_not",
-                  "color": "#3AA3E3",
-                  "attachment_type": "default",
 
-                  "title": "Is this reminder correct?",
-                  "actions": [
-                      {
-                          "name": "confirm",
-                          "text": "Yes",
-                          "type": "button",
-                          "value": "true"
-                      },
-                      {
-                          "name": "cancel",
-                          "text": "Cancel",
-                          "type": "button",
-                          "style": "danger",
-                          "value": "false"
-                      }
-                    ]
-                }
-          ]
-      }
       console.log('Action is complete!!!', data.result.parameters);
       pendingExist = true; //set it to true for future use.
 
@@ -162,8 +97,112 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
 
       // if invitees exist
       if (data.result.parameters.invitees) {
-        web.chat.postMessage(message.channel, `Scheduling a meeting with ${data.result.parameters.invitees} on ${data.result.parameters.date} at ${data.result.parameters.time} `, jsonBtn)
+        console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
+        var jsonBtn = {
+          // "text": "Would you like to play a game?",
+          "attachments": [
+              {
+                  // "title": "Is this reminder correct?",
+                  "fallback": "A meeting is created",
+                  "attachment_type": "default",
+                  "fields": [
+                            {
+                                "title": "Subject",
+                                "value": "Meeting",
+                                "short": true
+                            },
+                            {
+                                "title": "Invitees",
+                                // "value": data.result.parameters.invitees.map(function(x){return x}),
+                                "value": data.result.parameters.invitees[0],
+                                "short": true
+                            },
+                            {
+                                "title": "Date",
+                                "value": data.result.parameters.date,
+                                "short": true
+                            },
+                            {
+                                "title": "Time",
+                                "value": data.result.parameters.time,
+                                "short": true
+                            }
+                        ]
+                },
+                {
+                    // "title": "Is this reminder correct?",
+                    "fallback": "You are unable to create a schedule",
+                    "callback_id": "confirm_or_not",
+                    "color": "#3AA3E3",
+                    "attachment_type": "default",
+
+                    "title": "Is this reminder correct?",
+                    "actions": [
+                        {
+                            "name": "confirm",
+                            "text": "Yes",
+                            "type": "button",
+                            "value": "true"
+                        },
+                        {
+                            "name": "cancel",
+                            "text": "Cancel",
+                            "type": "button",
+                            "style": "danger",
+                            "value": "false"
+                        }
+                      ]
+                  }
+            ]
+        }
+        web.chat.postMessage(message.channel, ``, jsonBtn)
       } else {
+        var jsonBtn = {
+          // "text": "Would you like to play a game?",
+          "attachments": [
+              {
+                  // "title": "Is this reminder correct?",
+                  "fallback": "A reminder is created",
+                  "attachment_type": "default",
+                  "fields": [
+                            {
+                                "title": "Subject",
+                                "value": data.result.parameters.subject,
+                                "short": true
+                            },
+                            {
+                                "title": "Date",
+                                "value": data.result.parameters.date,
+                                "short": true
+                            }
+                        ]
+                },
+                {
+                    // "title": "Is this reminder correct?",
+                    "fallback": "You are unable to create a schedule",
+                    "callback_id": "confirm_or_not",
+                    "color": "#3AA3E3",
+                    "attachment_type": "default",
+
+                    "title": "Is this reminder correct?",
+                    "actions": [
+                        {
+                            "name": "confirm",
+                            "text": "Yes",
+                            "type": "button",
+                            "value": "true"
+                        },
+                        {
+                            "name": "cancel",
+                            "text": "Cancel",
+                            "type": "button",
+                            "style": "danger",
+                            "value": "false"
+                        }
+                      ]
+                  }
+            ]
+        }
         web.chat.postMessage(message.channel,'', jsonBtn)
       }
     }

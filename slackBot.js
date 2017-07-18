@@ -114,7 +114,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                             {
                                 "title": "Invitees",
                                 // "value": data.result.parameters.invitees.map(function(x){return x}),
-                                "value": data.result.parameters.invitees[0],
+                                "value": data.result.parameters.invitees.join(', '),
                                 "short": true
                             },
                             {

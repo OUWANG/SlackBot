@@ -38,7 +38,7 @@ app.post ('/messageReceive', function(req, res) {
       } else {
         event = {
           'summary': 'Test Scheduled Meeting',
-          'description': user.pending.subject || 'Meeting',
+          'description': user.pending.subject,
           'attendees' : [
             {
               displayName: user.pending.invitees[0],
@@ -73,7 +73,7 @@ app.post ('/messageReceive', function(req, res) {
         calendarId: 'primary',
         resource: event
       }, function(err,event){
-        console.log('EVENT EVENT EVENT###', event)
+        // console.log('EVENT EVENT EVENT###', event)
         if(err){
           console.log('errrrrr',err)
         } else {
@@ -196,7 +196,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         return;
     }
     //if it is DM.
-    console.log('Direct Message: ', message);
+    // console.log('Direct Message: ', message);
     // if pending is true, alert user to finish the pending task.
     // if (pendingExist) {
     //   rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
@@ -220,7 +220,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
     })
     .then(function(user) {
         // console.log(user); //printing out from MongoDB.
-        console.log("USER: ", user);
+        // console.log("USER: ", user);
         if (!user.google || user.google.expiry_date < Date.now() ) {
             rtm.sendMessage( `Hello,
                 This is Schedule Bot created by David Youn. In order to connect Schedule Bot to Google Calendar,
@@ -230,17 +230,17 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         // rtm.sendMessage('Your id is' + user._id, message.channel)
         getQueryFromAI(message.text, message.user)
         .then(function({data}) {
-            console.log("DATA: ", data);
+            // console.log("DATA: ", data);
             // if some input is missing,
             if (data.result.actionIncomplete) {
                 rtm.sendMessage(data.result.fulfillment.speech, message.channel);
             } else { //When I have everything what I need. ex. date & todo.
-                console.log('Action is complete!!!', data.result.parameters);
+                // console.log('Action is complete!!!', data.result.parameters);
                 // ACTION IS COMPLETE {date: '2017-07-26', description: 'do laundry', ...}
                 // if invitees exist
                 if (data.result.parameters.invitees) {
                     user.pending = {
-                        subject: 'meeting',
+                        subject: data.result.parameters.subject || 'Meeting',
                         invitees: data.result.parameters.invitees,
                         date: data.result.parameters.date,
                         time: data.result.parameters.time,
@@ -250,6 +250,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                         }
                     }
                     user.save()
+                    console.log('SUPER OBVIOUS', user.pending);
                     // console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
                     var jsonBtn = {
                         // "text": "Would you like to play a game?",
@@ -261,7 +262,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                                 "fields": [
                                     {
                                         "title": "Subject",
-                                        "value": "Meeting",
+                                        "value": data.result.parameters.subject,
                                         "short": true
                                     },
                                     {

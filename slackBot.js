@@ -24,8 +24,6 @@ app.post ('/messageReceive', function(req, res) {
 
   if (payload.actions[0].value === 'true'){ // when user press confirm.
 
-
-
     User.findOne({ slackId: payload.user.id})
     .then(function(user){
       console.log('TO BE SCHEDULED', user.pending)
@@ -266,6 +264,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                         subject: 'meeting',
                         invitees: data.result.parameters.invitees,
                         date: data.result.parameters.date,
+
                         time: data.result.parameters.time,
                         duration: {
                           amount: data.result.parameters.duration.amount,

@@ -12,6 +12,7 @@ var User = mongoose.model('User', {
     required: true
   },
   pending: {},
+
   google: {}
 });
 

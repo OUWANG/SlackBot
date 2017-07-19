@@ -101,8 +101,11 @@ function getGoogleAuth() {
         'http://localhost:3000/connect/callback'
     )
 }
-const GOOGLE_SCOPE = ['https://www.googleapis.com/auth/userinfo.profile',
-'https://www.googleapis.com/auth/calendar'];
+const GOOGLE_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/userinfo.email'
+ ];
 app.get('/connect', function(req, res){
     var userId = req.query.user;
     if (!userId) {
@@ -146,6 +149,7 @@ app.get('/connect/callback', function(req, res){
                         mongoUser.google = tokens;
                         mongoUser.google.profile_id = googleUser.id;
                         mongoUser.google.profile_name = googleUser.displayName;
+                        mongoUser.google.email = googleUser.emails[0].value;
                         return mongoUser.save();
                     })
                     .then(function(mongoUser) {

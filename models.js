@@ -11,6 +11,11 @@ var User = mongoose.model('User', {
     type: String,
     required: true
   },
+  // isPending: {
+  //   type: Boolean,
+  //   required: true
+  // },
+  pending : {},
   google: {}
 });
 

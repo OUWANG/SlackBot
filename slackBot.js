@@ -17,15 +17,30 @@ var { User } = require('./models');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-var pendingExist = false; //link to mongoDB with slackID and pending Varaible.
+// var pendingExist = false; //link to mongoDB with slackID and pending Varaible.
 
 app.post ('/messageReceive', function(req, res) {
     // console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
     var payload = JSON.parse(req.body.payload);
-
+    console.log('REQ:' , req);
     if (payload.actions[0].value === 'true'){ // when user press confirm.
+
+        User.findOne({ slackId: payload.user.id})
+        .then(function(user){
+            user.pending = {};
+            // console.log('WORKING!!!');
+            user.save();
+        })
+
         res.send('Created! :white_check_mark:');
     } else if (payload.actions[0].value === 'false'){ //when user press cancel.
+        User.findOne({ slackId: payload.user.id})
+        .then(function(user){
+            user.pending = {};
+            // console.log('WORKING!!!');
+            user.save();
+        })
+
         res.send('Canceled :x:');
     }
 })
@@ -39,7 +54,7 @@ function getGoogleAuth() {
         process.env.GOOGLE_CLIENT_SECRET,
         'http://localhost:3000/connect/callback'
     )
-        }
+}
 
 const GOOGLE_SCOPE = ['https://www.googleapis.com/auth/userinfo.profile',
 'https://www.googleapis.com/auth/calendar'];
@@ -49,7 +64,7 @@ app.get('/connect', function(req, res){
     if (!userId) {
         res.status(400).send('Missing user id');
     }
-    else{
+    else{ // if userID exists (logged in)
         User.findById(userId)
         .then(function(user){
             if (!user){
@@ -105,8 +120,9 @@ app.listen(port, function() {
     console.log('Server is up!');
 });
 
+// =========================================================================================
 // ========================================== bot ==========================================
-// ========================================== bot ==========================================
+// =========================================================================================
 
 var RtmClient = require('@slack/client').RtmClient;
 var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
@@ -139,9 +155,9 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
 
     // if it is NOT a direct message between bot and a user
     if (!dm || dm.id !== message.channel || message.type!== 'message'){
-        console.log("Message not sent to DM, ignoring");
-        console.log("dm" , dm);
-        console.log('NOT Direct Message: ', message);
+        // console.log("Message not sent to DM, ignoring");
+        // console.log("dm" , dm);
+        // console.log('NOT Direct Message: ', message);
         return;
     }
     //if it is DM.
@@ -159,16 +175,25 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         if (!user) {
             return new User({
                 slackId: message.user,
-                slackDMId: message.channel
+                slackDMId: message.channel,
+                pending: {}
             }).save();
         }
+
+        if (Object.keys(user.pending).length === 0) {
+            rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
+        }
+
         return user;
     })
     .then(function(user) {
-        console.log(user);
-        if (!user.google) {
+        // console.log(user); //printing out from MongoDB.
+
+        console.log("USER: ", user);
+        if (!user.google || user.google.expiry_date < Date.now() ) {
             rtm.sendMessage( `Hello,
-                This is Schedule Bot created by David Youn. In order to connect Schedule Bot to Google Calendar, please visit http://localhost:3000/connect?user=${user._id} `, message.channel);
+                This is Schedule Bot created by David Youn. In order to connect Schedule Bot to Google Calendar,
+                please visit http://localhost:3000/connect?user=${user._id} `, message.channel);
                 return;
         }
         // rtm.sendMessage('Your id is' + user._id, message.channel)
@@ -186,7 +211,14 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                 // ACTION IS COMPLETE {date: '2017-07-26', description: 'do laundry', ...}
                 // if invitees exist
                 if (data.result.parameters.invitees) {
-                    console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
+                    user.pending = {
+                        subject: 'meeting',
+                        invitees: data.result.parameters.invitees,
+                        date: data.result.parameters.date,
+                        time: data.result.parameters.time
+                    }
+                    user.save()
+                    // console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
                     var jsonBtn = {
                         // "text": "Would you like to play a game?",
                         "attachments": [
@@ -246,6 +278,11 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                     }
                     web.chat.postMessage(message.channel, ``, jsonBtn)
                 } else {
+                    user.pending = {
+                        subject: data.result.parameters.subject,
+                        date: data.result.parameters.date
+                    }
+                    user.save()
                     var jsonBtn = {
                         "attachments": [
                             {

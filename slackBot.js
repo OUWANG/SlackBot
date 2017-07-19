@@ -101,6 +101,7 @@ function getGoogleAuth() {
         'http://localhost:3000/connect/callback'
     )
 }
+//
 const GOOGLE_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/calendar',

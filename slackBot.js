@@ -37,7 +37,7 @@ app.post ('/messageReceive', function(req, res) {
         }
       } else {
         event = {
-          'summary': 'Test Scheduled Meeting',
+          'summary': user.pending.subject||'Test Scheduled Meeting',
           'description': user.pending.subject,
           'attendees' : [
             {
@@ -101,7 +101,6 @@ function getGoogleAuth() {
         'http://localhost:3000/connect/callback'
     )
 }
-//
 const GOOGLE_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/calendar',

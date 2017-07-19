@@ -23,8 +23,10 @@ app.post ('/messageReceive', function(req, res) {
   var payload = JSON.parse(req.body.payload);
 
   if (payload.actions[0].value === 'true'){ // when user press confirm.
-
-
+    // which user
+    // google credentials
+    // subject calendar event
+    // calendar event date
 
     User.findOne({ slackId: payload.user.id})
     .then(function(user){
@@ -34,22 +36,31 @@ app.post ('/messageReceive', function(req, res) {
           'summary': user.pending.subject,
           'description': user.pending.subject,
           'start': {
-            'date': user.pending.date
+            'date': user.pending.date,
           },
           'end': {
-            'date': addDay(date)// next day from user.pending.date
+            'date': user.pending.date,// next day from user.pending.date
+          //  moment(user.date).add(1, 'days').format('YYYY-MM-DD')
           }
         }
       } else {
         event = {
-          'summary': '#####',
-          'description': user.pending.subject,
-          'attendees' : user.pending.invitees,
+          'summary': 'Test Scheduled Meeting',
+          'description': user.pending.subject || 'Meeting',
+          'attendees' : [
+            {
+              displayName: user.pending.invitees[0],
+              email: 'rhong24@gmail.com'
+
+            }
+          ],
           'start': {
-            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z'
+            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z',
+            'timeZone': 'America/Los_Angeles'
           },
           'end': {
-            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z'
+            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z',
+            'timeZone': 'America/Los_Angeles'
           }
         }
       }
@@ -58,7 +69,7 @@ app.post ('/messageReceive', function(req, res) {
       let oauth2Client = new OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
-        process.env.DOMAIN+'/connect/callback'
+        'http://localhost:3000/connect/callback'
       )
 
       let rtoken={}
@@ -66,6 +77,7 @@ app.post ('/messageReceive', function(req, res) {
       rtoken.id_token=user.google.id_token;
       rtoken.token_type=user.google.token_type;
       rtoken.expiry_date=user.google.expiry_date;
+      rtoken.refresh_token=user.google.refresh_token;
 
       oauth2Client.setCredentials(rtoken)
       calendar.events.insert({
@@ -73,11 +85,11 @@ app.post ('/messageReceive', function(req, res) {
         calendarId: 'primary',
         resource: event
       }, function(err,event){
+        console.log('EVENT EVENT EVENT###', event)
         if(err){
           console.log('errrrrr',err)
         } else {
           user.pending = {};
-          // console.log('WORKING!!!');
           user.save();
           res.send('Created! :white_check_mark:');
         }
@@ -88,13 +100,11 @@ app.post ('/messageReceive', function(req, res) {
     User.findOne({ slackId: payload.user.id})
     .then(function(user){
       user.pending = {};
-      // console.log('WORKING!!!');
       user.save();
     })
     res.send('Canceled :x:');
   }
 })
-
 var google = require('googleapis');
 var OAuth2 = google.auth.OAuth2;
 
@@ -230,7 +240,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
             }).save();
         }
 
-        if (Object.keys(user.pending).length !== 0) {
+        if (user.pending && Object.keys(user.pending).length !== 0) {
             rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
             return;
         }
@@ -268,8 +278,8 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                         date: data.result.parameters.date,
                         time: data.result.parameters.time,
                         duration: {
-                          amount: data.result.parameters.duration.amount,
-                          unit: data.result.parameters.duration.unit
+                            amount: data.result.parameters.duration.amount,
+                            unit: data.result.parameters.duration.unit
                         }
                     }
                     user.save()
@@ -405,5 +415,5 @@ rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
 });
 
 // module.export() = {
-//
+//     web
 // }

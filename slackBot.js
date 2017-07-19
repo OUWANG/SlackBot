@@ -185,7 +185,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
             rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
             return;
         }
-        console.log('test', user); //printing out from MongoDB.
+        // console.log('test', user); //printing out from MongoDB.
         return user;
     })
     .then(function(user) {

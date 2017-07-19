@@ -3,6 +3,7 @@ var app = express();
 var bodyParser = require('body-parser');
 var WebClient = require('@slack/client').WebClient;
 var axios = require('axios');
+var moment = require('moment-timezone');
 
 var { User } = require('./models');
 
@@ -41,17 +42,16 @@ app.post ('/messageReceive', function(req, res) {
           }
         }
       } else {
+        var dat = moment.tz(user.pending.date + ' ' + user.pending.time, 'America/Los_Angeles');
         event = {
           'summary': '#####',
           'description': user.pending.subject,
           'attendees' : user.pending.invitees,
           'start': {
-            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z',
-            timeZone: 'America/Los_Angeles'
+            dateTime: dat.format()
           },
           'end': {
-            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z',
-            timeZone: 'America/Los_Angeles'
+            'dateTime': dat.add(30, 'minutes').format()
           }
         }
       }

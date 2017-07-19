@@ -102,12 +102,15 @@ function getGoogleAuth() {
     return new OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
-        'http://localhost:3000/connect/callback'
+        process.env.DOMAIN + '/connect/callback'
     )
 }
 
-const GOOGLE_SCOPE = ['https://www.googleapis.com/auth/userinfo.profile',
-'https://www.googleapis.com/auth/calendar'];
+const GOOGLE_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/userinfo.email'
+];
 
 app.get('/connect', function(req, res){
     var userId = req.query.user;
@@ -153,6 +156,7 @@ app.get('/connect/callback', function(req, res){
                         mongoUser.google = tokens;
                         mongoUser.google.profile_id = googleUser.id;
                         mongoUser.google.profile_name = googleUser.displayName;
+                        mongoUser.google.email = googleUser.emails[0].value;
                         return mongoUser.save();
                     })
                     .then(function(mongoUser) {
@@ -244,7 +248,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         if (!user.google || user.google.expiry_date < Date.now() ) {
             rtm.sendMessage( `Hello,
                 This is Schedule Bot created by David Youn. In order to connect Schedule Bot to Google Calendar,
-                please visit http://localhost:3000/connect?user=${user._id} `, message.channel);
+                please visit ${process.env.DOMAIN}/connect?user=${user._id} `, message.channel);
                 return;
         }
         // rtm.sendMessage('Your id is' + user._id, message.channel)

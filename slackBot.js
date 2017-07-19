@@ -46,7 +46,7 @@ app.post ('/messageReceive', function(req, res) {
         event = {
           'summary': '#####',
           'description': user.pending.subject,
-          'attendees' : [{email: "younsa@bc.edu"}, {email: "rhong24@gmail.com"}]
+          'attendees' : [{email: "younsa@bc.edu"}, {email: "rhong24@gmail.com"}],
           'start': {
             dateTime: dat.format()
           },

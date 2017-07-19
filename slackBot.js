@@ -1,4 +1,3 @@
-
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -20,30 +19,78 @@ app.use(bodyParser.json());
 // var pendingExist = false; //link to mongoDB with slackID and pending Varaible.
 
 app.post ('/messageReceive', function(req, res) {
-    // console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
-    var payload = JSON.parse(req.body.payload);
+  // console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
+  var payload = JSON.parse(req.body.payload);
 
-    if (payload.actions[0].value === 'true'){ // when user press confirm.
+  if (payload.actions[0].value === 'true'){ // when user press confirm.
 
-        User.findOne({ slackId: payload.user.id})
-        .then(function(user){
-            user.pending = {};
-            // console.log('WORKING!!!');
-            user.save();
-        })
-        res.send('Created! :white_check_mark:');
+    User.findOne({ slackId: payload.user.id})
+    .then(function(user){
+      console.log('TO BE SCHEDULED', user.pending)
+      if (!user.pending.invitees) {
+        event = {
+          'summary': user.pending.subject,
+          'description': user.pending.subject,
+          'start': {
+            'date': user.pending.date
+          },
+          'end': {
+            'date': addDay(date)// next day from user.pending.date
+          }
+        }
+      } else {
+        event = {
+          'summary': '#####',
+          'description': user.pending.subject,
+          'attendees' : user.pending.invitees,
+          'start': {
+            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z'
+          },
+          'end': {
+            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z'
+          }
+        }
+      }
 
-    } else if (payload.actions[0].value === 'false'){ //when user press cancel.
+      var calendar = google.calendar('v3');
+      let oauth2Client = new OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        process.env.DOMAIN+'/connect/callback'
+      )
 
-        User.findOne({ slackId: payload.user.id})
-        .then(function(user){
-            user.pending = {};
-            // console.log('WORKING!!!');
-            user.save();
-        })
+      let rtoken={}
+      rtoken.access_token=user.google.access_token;
+      rtoken.id_token=user.google.id_token;
+      rtoken.token_type=user.google.token_type;
+      rtoken.expiry_date=user.google.expiry_date;
 
-        res.send('Canceled :x:');
-    }
+      oauth2Client.setCredentials(rtoken)
+      calendar.events.insert({
+        auth: oauth2Client,
+        calendarId: 'primary',
+        resource: event
+      }, function(err,event){
+        if(err){
+          console.log('errrrrr',err)
+        } else {
+          user.pending = {};
+          // console.log('WORKING!!!');
+          user.save();
+          res.send('Created! :white_check_mark:');
+        }
+      })
+    })
+  } else if (payload.actions[0].value === 'false'){ //when user press cancel.
+
+    User.findOne({ slackId: payload.user.id})
+    .then(function(user){
+      user.pending = {};
+      // console.log('WORKING!!!');
+      user.save();
+    })
+    res.send('Canceled :x:');
+  }
 })
 
 var google = require('googleapis');
@@ -181,15 +228,15 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
             }).save();
         }
 
-        if (user.pending && Object.keys(user.pending).length !== 0) {
+        if (Object.keys(user.pending).length !== 0) {
             rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
             return;
         }
-        // console.log('test', user); //printing out from MongoDB.
+
         return user;
     })
     .then(function(user) {
-        console.log(user); //printing out from MongoDB.
+        // console.log(user); //printing out from MongoDB.
 
         console.log("USER: ", user);
         if (!user.google || user.google.expiry_date < Date.now() ) {
@@ -217,10 +264,15 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                         subject: 'meeting',
                         invitees: data.result.parameters.invitees,
                         date: data.result.parameters.date,
-                        time: data.result.parameters.time
+
+                        time: data.result.parameters.time,
+                        duration: {
+                          amount: data.result.parameters.duration.amount,
+                          unit: data.result.parameters.duration.unit
+                        }
                     }
                     user.save()
-                    console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
+                    // console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
                     var jsonBtn = {
                         // "text": "Would you like to play a game?",
                         "attachments": [

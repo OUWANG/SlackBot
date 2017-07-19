@@ -1,3 +1,4 @@
+
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -19,8 +20,49 @@ app.use(bodyParser.json());
 // var pendingExist = false; //link to mongoDB with slackID and pending Varaible.
 
 app.post ('/messageReceive', function(req, res) {
-  // console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
-  var payload = JSON.parse(req.body.payload);
+    // console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
+    var payload = JSON.parse(req.body.payload);
+
+    if (payload.actions[0].value === 'true'){ // when user press confirm.
+
+        //by Moose ==================
+        //what we need to do
+        // which user
+        // google credentials
+        // subject calendar event
+        //calendar event date
+        User.findOne({ slackId: payload.user.id})
+        .then(function(user){
+            var googleAuth = getGoogleAuth();
+            var credentials = Object.assign({}, user.google);
+            delete credentials.profile_id;
+            delete credentials.profile_name;
+            googleAuth.setCredentials(credentials);
+            var calendar = google.calender('v3');
+            calendar.events.insert({
+                auth: googleAuth,
+                calendarId: 'primary',
+                resource: {
+                    summary: user.subject, //user.description
+                    start: {
+                        date: user.date,
+                        timeZone: 'America/Los_Angeles'  // change if you want NY. New_York
+                    },
+                    end: {
+                        // date: moment(user.date).add(1, 'days').format('YYYY-MM-DD'),
+                        date: user.date,
+                        timeZone: 'America/Los_Angeles'
+                    }
+                }
+            }, function(err, result){
+                if (err){
+                    res.send('There was an error :x:');
+                }
+                else {
+                    res.send('Created reminder :white_check_mark:')
+                }
+            })
+        })
 
   if (payload.actions[0].value === 'true'){ // when user press confirm.
     // which user
@@ -103,7 +145,7 @@ app.post ('/messageReceive', function(req, res) {
       user.save();
     })
     res.send('Canceled :x:');
-  }
+  }  
 })
 var google = require('googleapis');
 var OAuth2 = google.auth.OAuth2;
@@ -413,7 +455,8 @@ rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
     // rtm.sendMessage("Hello!", channel);
     console.log("Bot is online!");
 });
-
+  
 // module.export() = {
 //     web
 // }
+

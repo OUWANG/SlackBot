@@ -37,7 +37,7 @@ app.post ('/messageReceive', function(req, res) {
             'date': user.pending.date
           },
           'end': {
-            'date': addDay(date)// next day from user.pending.date
+            'date': user.pending.date// next day from user.pending.date
           }
         }
       } else {

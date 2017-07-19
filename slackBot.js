@@ -181,15 +181,15 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
             }).save();
         }
 
-        if (Object.keys(user.pending).length !== 0) {
+        if (user.pending && Object.keys(user.pending).length !== 0) {
             rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
             return;
         }
-
+        console.log('test', user); //printing out from MongoDB.
         return user;
     })
     .then(function(user) {
-        // console.log(user); //printing out from MongoDB.
+        console.log(user); //printing out from MongoDB.
 
         console.log("USER: ", user);
         if (!user.google || user.google.expiry_date < Date.now() ) {
@@ -220,7 +220,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                         time: data.result.parameters.time
                     }
                     user.save()
-                    // console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
+                    console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
                     var jsonBtn = {
                         // "text": "Would you like to play a game?",
                         "attachments": [

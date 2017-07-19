@@ -46,10 +46,12 @@ app.post ('/messageReceive', function(req, res) {
           'description': user.pending.subject,
           'attendees' : user.pending.invitees,
           'start': {
-            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z'
+            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z',
+            timeZone: 'America/Los_Angeles'
           },
           'end': {
-            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z'
+            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z',
+            timeZone: 'America/Los_Angeles'
           }
         }
       }

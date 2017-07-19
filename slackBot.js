@@ -64,82 +64,89 @@ app.post ('/messageReceive', function(req, res) {
             })
         })
 
-        // to find email
-        var slackUser = rtm.dataStore.getUserById(message.user)
+  if (payload.actions[0].value === 'true'){ // when user press confirm.
+    // which user
+    // google credentials
+    // subject calendar event
+    // calendar event date
 
+    User.findOne({ slackId: payload.user.id})
+    .then(function(user){
+      console.log('TO BE SCHEDULED', user.pending)
+      if (!user.pending.invitees) {
+        event = {
+          'summary': user.pending.subject,
+          'description': user.pending.subject,
+          'start': {
+            'date': user.pending.date,
+          },
+          'end': {
+            'date': user.pending.date,// next day from user.pending.date
+          //  moment(user.date).add(1, 'days').format('YYYY-MM-DD')
+          }
+        }
+      } else {
+        event = {
+          'summary': 'Test Scheduled Meeting',
+          'description': user.pending.subject || 'Meeting',
+          'attendees' : [
+            {
+              displayName: user.pending.invitees[0],
+              email: 'rhong24@gmail.com'
 
-        //  by Moose
-
-
-        User.findOne({ slackId: payload.user.id})
-        .then(function(user){
-            console.log('TO BE SCHEDULED', user.pending)
-            if (!user.pending.invitees) {
-                event = {
-                    'summary': user.pending.subject,
-                    'description': user.pending.subject,
-                    'start': {
-                        'date': user.pending.date
-                    },
-                    'end': {
-                        'date': addDay(user.pending.date)// next day from user.pending.date
-                    }
-                }
-            } else { //if invitees exist (Scheduling meeting)
-                event = {
-                    'summary': user.pending.subject,
-                    'description': user.pending.subject,
-                    'attendees': user.pending.attendees,
-                    'start': {
-                        'date': user.pending.date
-                    },
-                    'end': {
-                        'date': '2017-07-20'// next day from user.pending.date
-                    }
-                }
             }
+          ],
+          'start': {
+            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z',
+            'timeZone': 'America/Los_Angeles'
+          },
+          'end': {
+            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z',
+            'timeZone': 'America/Los_Angeles'
+          }
+        }
+      }
 
-            var calendar = google.calendar('v3');
-            let oauth2Client = new OAuth2(
-                process.env.GOOGLE_CLIENT_ID,
-                process.env.GOOGLE_CLIENT_SECRET,
-                process.env.DOMAIN+'/connect/callback'
-            )
+      var calendar = google.calendar('v3');
+      let oauth2Client = new OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        'http://localhost:3000/connect/callback'
+      )
 
-            let rtoken={}
-            rtoken.access_token=user.google.access_token;
-            rtoken.id_token=user.google.id_token;
-            rtoken.token_type=user.google.token_type;
-            rtoken.expiry_date=user.google.expiry_date;
+      let rtoken={}
+      rtoken.access_token=user.google.access_token;
+      rtoken.id_token=user.google.id_token;
+      rtoken.token_type=user.google.token_type;
+      rtoken.expiry_date=user.google.expiry_date;
+      rtoken.refresh_token=user.google.refresh_token;
 
-            oauth2Client.setCredentials(rtoken)
-            calendar.events.insert({
-                auth: oauth2Client,
-                calendarId: 'primary',
-                resource: event
-            }, function(err,event){
-                if(err){
-                    console.log('errrrrr',err)
-                } else {
-                    user.pending = {};
-                    // console.log('WORKING!!!');
-                    user.save();
-                    res.send('Added to your Google Calendar :white_check_mark:');
-                }
-            })
-        })
-    } else if (payload.actions[0].value === 'false'){ //when user press cancel.
+      oauth2Client.setCredentials(rtoken)
+      calendar.events.insert({
+        auth: oauth2Client,
+        calendarId: 'primary',
+        resource: event
+      }, function(err,event){
+        console.log('EVENT EVENT EVENT###', event)
+        if(err){
+          console.log('errrrrr',err)
+        } else {
+          user.pending = {};
+          user.save();
+          res.send('Created! :white_check_mark:');
+        }
+      })
+    })
+  } else if (payload.actions[0].value === 'false'){ //when user press cancel.
 
-        User.findOne({ slackId: payload.user.id})
-        .then(function(user){
-            user.pending = {};
-            // console.log('WORKING!!!');
-            user.save();
-        })
-        res.send('Canceled :x:');
-    }
+    User.findOne({ slackId: payload.user.id})
+    .then(function(user){
+      user.pending = {};
+      user.save();
+    })
+    res.send('Canceled :x:');
+  }  
 })
-
 var google = require('googleapis');
 var OAuth2 = google.auth.OAuth2;
 
@@ -448,7 +455,8 @@ rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
     // rtm.sendMessage("Hello!", channel);
     console.log("Bot is online!");
 });
+  
+// module.export() = {
+//     web
+// }
 
-module.export() = {
-    web
-}

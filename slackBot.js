@@ -22,7 +22,7 @@ app.use(bodyParser.json());
 app.post ('/messageReceive', function(req, res) {
     // console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
     var payload = JSON.parse(req.body.payload);
-    console.log('REQ:' , req);
+
     if (payload.actions[0].value === 'true'){ // when user press confirm.
 
         User.findOne({ slackId: payload.user.id})
@@ -31,9 +31,10 @@ app.post ('/messageReceive', function(req, res) {
             // console.log('WORKING!!!');
             user.save();
         })
-
         res.send('Created! :white_check_mark:');
+
     } else if (payload.actions[0].value === 'false'){ //when user press cancel.
+
         User.findOne({ slackId: payload.user.id})
         .then(function(user){
             user.pending = {};
@@ -180,8 +181,9 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
             }).save();
         }
 
-        if (Object.keys(user.pending).length === 0) {
+        if (Object.keys(user.pending).length !== 0) {
             rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
+            return;
         }
 
         return user;

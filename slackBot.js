@@ -42,10 +42,10 @@ app.post ('/messageReceive', function(req, res) {
             'date': user.pending.date// next day from user.pending.date
           }
         }
-        var Reminder = new Reminder({
+        var newReminder = new Reminder({
           user: payload.user.id,
           subject: user.pending.subject,
-          date: user.pending.date
+          Date: user.pending.date
         }).save()
       } else {
         var dat = moment.tz(user.pending.date + ' ' + user.pending.time, 'America/Los_Angeles');

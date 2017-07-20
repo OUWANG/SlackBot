@@ -40,13 +40,6 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
     //if it is DM.
     console.log('Direct Message: ', message);
 
-    // if pending is true, alert user to finish the pending task.
-    // if (pendingExist) {
-    //   rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
-    //   // web.chat.postMessage(message.channel, `Scheduling a meeting with ${data.result.parameters.invitees} on ${data.result.parameters.date} at ${data.result.parameters.time} `, jsonBtn)
-    //   return;
-    // }
-
     User.findOne({ slackId: message.user})
     .then(function(user){
         if (!user) {

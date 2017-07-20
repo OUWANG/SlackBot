@@ -143,7 +143,7 @@ app.get('/connect', function(req, res){
     });
   }
 });
-
+//
 app.get('/connect/callback', function(req, res){
     var googleAuth = getGoogleAuth();
     googleAuth.getToken(req.query.code, function (err, tokens) {

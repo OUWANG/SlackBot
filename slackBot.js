@@ -3,6 +3,7 @@ var app = express();
 var bodyParser = require('body-parser');
 var WebClient = require('@slack/client').WebClient;
 var axios = require('axios');
+var moment = require('moment-timezone');
 
 var { User } = require('./models');
 
@@ -37,19 +38,20 @@ app.post ('/messageReceive', function(req, res) {
             'date': user.pending.date
           },
           'end': {
-            'date': addDay(date)// next day from user.pending.date
+            'date': user.pending.date// next day from user.pending.date
           }
         }
       } else {
+        var dat = moment.tz(user.pending.date + ' ' + user.pending.time, 'America/Los_Angeles');
         event = {
           'summary': '#####',
           'description': user.pending.subject,
-          'attendees' : user.pending.invitees,
+          'attendees' : [{email: "younsa@bc.edu"}, {email: "rhong24@gmail.com"}],
           'start': {
-            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z'
+            dateTime: dat.format()
           },
           'end': {
-            'dateTime': user.pending.date + 'T' + user.pending.time + 'Z'
+            'dateTime': dat.add(30, 'minutes').format()
           }
         }
       }
@@ -102,12 +104,15 @@ function getGoogleAuth() {
     return new OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
-        'http://localhost:3000/connect/callback'
+        process.env.DOMAIN + '/connect/callback'
     )
 }
 
-const GOOGLE_SCOPE = ['https://www.googleapis.com/auth/userinfo.profile',
-'https://www.googleapis.com/auth/calendar'];
+const GOOGLE_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/userinfo.email'
+];
 
 app.get('/connect', function(req, res){
     var userId = req.query.user;
@@ -153,6 +158,7 @@ app.get('/connect/callback', function(req, res){
                         mongoUser.google = tokens;
                         mongoUser.google.profile_id = googleUser.id;
                         mongoUser.google.profile_name = googleUser.displayName;
+                        mongoUser.google.email = googleUser.emails[0].value;
                         return mongoUser.save();
                     })
                     .then(function(mongoUser) {
@@ -165,7 +171,7 @@ app.get('/connect/callback', function(req, res){
     })
 });
 
-var port = '3000'
+var port = 3000;
 app.listen(port, function() {
     console.log('Server is up!');
 });
@@ -244,7 +250,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         if (!user.google || user.google.expiry_date < Date.now() ) {
             rtm.sendMessage( `Hello,
                 This is Schedule Bot created by David Youn. In order to connect Schedule Bot to Google Calendar,
-                please visit http://localhost:3000/connect?user=${user._id} `, message.channel);
+                please visit ${process.env.DOMAIN}/connect?user=${user._id} `, message.channel);
                 return;
         }
         // rtm.sendMessage('Your id is' + user._id, message.channel)

@@ -72,7 +72,7 @@ rtm.on(RTM_EVENTS.MESSAGEd, function handleRtmMessage(message) {
     if (!user.google || user.google.expiry_date < Date.now() ) {
       rtm.sendMessage( `Hello,
         This is Schedule Bot created by David Youn. In order to connect Schedule Bot to Google Calendar,
-        please visit ${process.env.DOMAIN}/connect?user=${user._id} `, message.channel);
+        please visit http://localhost:3000/connect?user=${user._id} `, message.channel);
         return;
       }
       // rtm.sendMessage('Your id is' + user._id, message.channel)

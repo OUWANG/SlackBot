@@ -63,7 +63,8 @@ app.post ('/messageReceive', function(req, res) {
       let oauth2Client = new OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
-        process.env.DOMAIN+'/connect/callback'
+        'localhost:3000/connect/callback'
+        //process.env.DOMAIN+'/connect/callback'
       )
 
       let rtoken={}
@@ -106,7 +107,8 @@ function getGoogleAuth() {
     return new OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
-        process.env.DOMAIN + '/connect/callback'
+        'http://localhost:3000/connect/callback'
+        //process.env.DOMAIN + '/connect/callback'
     )
 }
 

@@ -17,8 +17,9 @@ var User = mongoose.model('User', {
 });
 
 var Reminder = mongoose.model('Reminder', {
-  task: String,
-  startDate: String
+  user: String,
+  subject: String,
+  Date: String
 })
 
 module.exports = {

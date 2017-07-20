@@ -6,6 +6,7 @@ var axios = require('axios');
 var moment = require('moment-timezone');
 
 var { User } = require('./models');
+var { Reminder } = require('./models')
 
 
 // var User = require('./models').User    same as above.

@@ -5,7 +5,9 @@ var WebClient = require('@slack/client').WebClient;
 var axios = require('axios');
 var moment = require('moment-timezone');
 
-var { User } = require('./models');
+var { User, Reminder } = require('./models');
+
+
 
 var userList = [] // storing user's emails, displayNames here and will empty on creation of Scheduling a meeting
 // var User = require('./models').User    same as above.
@@ -20,7 +22,6 @@ app.use(bodyParser.json());
 // var pendingExist = false; //link to mongoDB with slackID and pending Varaible.
 
 app.post ('/messageReceive', function(req, res) {
-    // console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
     var payload = JSON.parse(req.body.payload);
 
     if (payload.actions[0].value === 'true'){ // when user press confirm.
@@ -43,7 +44,7 @@ app.post ('/messageReceive', function(req, res) {
 
         //  =============== to find invitees email ==================== */
 
-        console.log("REQ@@", req.body);
+      console.log('hello')
 
         User.findOne({ slackId: payload.user.id})
         .then(function(user){
@@ -69,7 +70,7 @@ app.post ('/messageReceive', function(req, res) {
                 console.log('USER LIST ##<<##', userList)
                 event = {
                     // 'summary': `Meeting with $(userList.map(function(x){return x+' '}))}`,
-                    'summary': `Meeting with ${userList.map(function(x){return x.displayName}).join(', ')}`,
+                    'summary': `Meeting with ${userList.map(function(x){return x.displayName.charAt(0).toUpperCase() + x.slice(1)}).join(', ')}`,
                     'description': user.pending.subject,
                     'attendees' : userList,
                     'start': {
@@ -104,6 +105,7 @@ app.post ('/messageReceive', function(req, res) {
                     console.log('errrrrr',err)
                 } else {
                     user.pending = {};
+                    userList = [];
                     // console.log('WORKING!!!');
                     user.save();
                     res.send('Created! :white_check_mark:');
@@ -115,6 +117,7 @@ app.post ('/messageReceive', function(req, res) {
         User.findOne({ slackId: payload.user.id})
         .then(function(user){
             user.pending = {};
+            userList = [];
             // console.log('WORKING!!!');
             user.save();
         })
@@ -220,9 +223,8 @@ rtm.start();
 function getQueryFromAI(message, session) {
 
     // example message:  schedule a meeting <@U69RUTB42> <@A19RUTB11> tomorrow 9am
-
     var matches = message.match(/<@(\w+)>/g);
-    var matchesClean = [...matches];
+    var matchesClean = matches ? [...matches] : [];
     for (let i = 0; i< matchesClean.length; i++){
         matchesClean[i] = matchesClean[i].substring(2,11);
     }
@@ -288,10 +290,10 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                 pending: {}
             }).save();
         }
-        // if (user.pending && Object.keys(user.pending).length !== 0) {
-        //     rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
-        //     return;
-        // }
+        if (user.pending && Object.keys(user.pending).length !== 0) {
+            rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
+            return;
+        }
 
         return user;
     })
@@ -347,7 +349,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                                     "fields": [
                                         {
                                             "title": "Subject",
-                                            "value": `Meeting with ${userList.map(function(x){return x.displayName}).join(', ')}`,
+                                            "value": `Meeting with ${userList.map(function(x){return x.displayName.charAt(0).toUpperCase() + x.displayName.slice(1)}).join(', ')}`,
                                             "short": true
                                         },
                                         {
@@ -468,6 +470,6 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         console.log("Bot is online!");
     });
 
-    // module.export() = {
-    //
-    // }
+    module.exports = {
+      Web: web
+    }

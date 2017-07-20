@@ -19,7 +19,7 @@ var User = mongoose.model('User', {
 var Reminder = mongoose.model('Reminder', {
   user: String,
   subject: String,
-  Date: String
+  date: String
 })
 
 module.exports = {

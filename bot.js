@@ -50,10 +50,15 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
             }).save();
         }
 
-        if (user.pending.date) {
-            rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first on the the current reminder", message.channel)
+        if (Object.keys(user.pending).length !== 0) {
+            rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first on the current reminder", message.channel)
             return;
         }
+
+        // if (user.pending.date) {
+        //     rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first on the the current reminder", message.channel)
+        //     return;
+        // }
 
         return user;
     })

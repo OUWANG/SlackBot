@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 // var pendingExist = false; //link to mongoDB with slackID and pending Varaible.
 
 app.post ('/messageReceive', function(req, res) {
-  // console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
+  console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
   var payload = JSON.parse(req.body.payload);
 
   if (payload.actions[0].value === 'true'){ // when user press confirm.

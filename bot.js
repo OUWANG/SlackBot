@@ -51,7 +51,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         }
 
         if (user.pending.date) {
-            rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
+            rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first on the the current reminder", message.channel)
             return;
         }
 

@@ -16,6 +16,13 @@ var User = mongoose.model('User', {
   google: {}
 });
 
+var Reminder = mongoose.model('Reminder', {
+  user: String,
+  subject: String,
+  date: String
+})
+
 module.exports = {
-  User
+  User,
+  Reminder
 };

@@ -175,7 +175,6 @@ var port = process.env.PORT || '3000';
 app.listen(port, function() {
     console.log('Server is up!');
 });
-//extra lines
 
 // =========================================================================================
 // ========================================== bot ==========================================
@@ -236,13 +235,13 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                 pending: {}
             }).save();
         }
-        if (user.pending.date) {
+
+        if (Object.keys(user.pending).length !== 0) {
             rtm.sendMessage("I think you're trying to create a new reminder. If so, please press `cancel` first to about the current reminder", message.channel)
             return;
         }
 
         return user;
-        console.log('test on line 245' , test)
     })
     .then(function(user) {
         // console.log(user); //printing out from MongoDB.

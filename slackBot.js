@@ -69,7 +69,7 @@ app.post ('/messageReceive', function(req, res) {
                 console.log('USER LIST ##<<##', userList)
                 event = {
                     // 'summary': `Meeting with $(userList.map(function(x){return x+' '}))}`,
-                    'summary': `Meeting with ${userList.map(function(x){return x.displayName}).join(', ')}`,
+                    'summary': `Meeting with ${userList.map(function(x){return x.displayName.charAt(0).toUpperCase() + x.slice(1)}).join(', ')}`,
                     'description': user.pending.subject,
                     'attendees' : userList,
                     'start': {
@@ -104,6 +104,7 @@ app.post ('/messageReceive', function(req, res) {
                     console.log('errrrrr',err)
                 } else {
                     user.pending = {};
+                    userList = [];
                     // console.log('WORKING!!!');
                     user.save();
                     res.send('Created! :white_check_mark:');
@@ -115,6 +116,7 @@ app.post ('/messageReceive', function(req, res) {
         User.findOne({ slackId: payload.user.id})
         .then(function(user){
             user.pending = {};
+            userList = [];
             // console.log('WORKING!!!');
             user.save();
         })
@@ -347,7 +349,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                                     "fields": [
                                         {
                                             "title": "Subject",
-                                            "value": `Meeting with ${userList.map(function(x){return x.displayName}).join(', ')}`,
+                                            "value": `Meeting with ${userList.map(function(x){return x.displayName.charAt(0).toUpperCase() + x.displayName.slice(1)}).join(', ')}`,
                                             "short": true
                                         },
                                         {

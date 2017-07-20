@@ -22,6 +22,7 @@ app.use(bodyParser.json());
 app.post ('/messageReceive', function(req, res) {
   console.log("@@@@@@@@@@@@PAYLOAD @@@@ ", req);
   var payload = JSON.parse(req.body.payload);
+  console.log('SLACK PAYLOAD', payload, payload.callback_id)
 
   if (payload.actions[0].value === 'true'){ // when user press confirm.
 
@@ -47,7 +48,7 @@ app.post ('/messageReceive', function(req, res) {
           date: user.pending.date
         }).save()
       } else {
-        var dat = moment.tz(user.pending.date + ' ' + user.pending.time, 'America/Los_Angeles');
+        var dat = moment.tz(user.pending.date + ' ' + user.pending.time, 'America/Los_Angeles'); // moment.utc(user.pending.date).format('YYYY-MM-DDTHH:mm:ss-07:00')
         event = {
           'summary': '#####',
           'description': user.pending.subject,
@@ -56,7 +57,7 @@ app.post ('/messageReceive', function(req, res) {
             dateTime: dat.format()
           },
           'end': {
-            'dateTime': dat.add(30, 'minutes').format()
+            'dateTime': dat.add(30, 'minutes').format() // moment.utc(user.pending.date).add(1, 'hours').format('YYYY-MM-DDTHH:mm:ss-07:00')
           }
         }
       }

@@ -400,7 +400,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                                         },
                                         {
                                             "title": "Date",
-                                            "value": data.result.parameters.date,
+                                            "value": outputString,
                                             "short": true
                                         },
                                         {
@@ -456,7 +456,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                                         },
                                         {
                                             "title": "Date",
-                                            "value": data.result.parameters.date,
+                                            "value": outputString,
                                             "short": true
                                         }
                                     ]

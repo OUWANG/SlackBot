@@ -66,6 +66,7 @@ app.post ('/messageReceive', function(req, res) {
                   date: user.pending.date
                 }).save()
             } else { // with invitees
+
                 var dat = moment.tz(user.pending.date + ' ' + user.pending.time, 'America/Los_Angeles');
                 console.log('USER LIST ##<<##', userList)
                 event = {
@@ -270,9 +271,10 @@ function getQueryFromAI(message, session) {
 rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
     var dm = rtm.dataStore.getDMByUserId(message.user);
 
-    console.log("!!@@MESSAGE: ", message);
+    console.log("!!@@MESSAGE: ", message.subtype);
+    // console.log('!!@@DM_ID', dm.id)
     // if it is NOT a direct message between bot and a user
-    if (!dm || dm.id !== message.channel || message.type!== 'message'){
+    if (!dm || dm.id !== message.channel || message.type!== 'message' ){
         console.log("Message not sent to DM, ignoring");
         // console.log("dm" , dm);
         // console.log('NOT Direct Message: ', message);
@@ -312,6 +314,8 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
             getQueryFromAI(message.text, message.user)
             .then(function({data}) {
                 console.log("DATA: ", data);
+                console.log('DATA DATE HERE: <<<<<<<>>>>>>>>', data.result.parameters.date)
+                console.log('DATA DATA FORMATTED HERE ####@@@@@', Date(data.result.parameters.date).slice(0, 15))
 
                 // if some input is missing,
                 if (data.result.actionIncomplete) {
@@ -321,7 +325,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                 //     rtm.sendMessage('looks like you are trying to schedule', message.channel);
                 // }
                 else { //When I have everything what I need. ex. date & todo.
-                    console.log('Action is complete!!!', data.result.parameters);
+
                     // ACTION IS COMPLETE {date: '2017-07-26', description: 'do laundry', ...}
 
 
@@ -337,7 +341,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                                 unit: data.result.parameters.duration.unit
                             }
                         }
-                        user.save()
+                        user.save();
                         // console.log("@@@@@INVITEES@@@@@",  data.result.parameters.invitees);
                         var jsonBtn = {
                             // "text": "Would you like to play a game?",
@@ -448,6 +452,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                             ]
                         }
                         web.chat.postMessage(message.channel,'', jsonBtn)
+                        console.log('THIS ACTION IS BEING COMPLETED')
                     }
                 }
             })
